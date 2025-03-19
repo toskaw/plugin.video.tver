@@ -242,7 +242,6 @@ class TVerIE(InfoExtractor):
             headers={'origin': 'https://tver.jp/', 'referer': 'https://tver.jp/'},
             note='Downloading streaks.jp m3u8 information',
         )
-        self.write_debug(f'formats: {formats}')
         result.update({
             'id': video_id,
             'formats': formats,
