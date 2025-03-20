@@ -5,15 +5,22 @@
 - [x] タイトルでの並べ替えを追加
 - [x] カテゴリーなどのリストを番組名でフォルダー化
 - [x] すべて、未視聴、視聴済みで絞り込み
+- [x] マイリストにエピソードIDで追加
+- [x] カテゴリーキャッシュのクリア機能追加
 
 ## Changes
 - [x] add sort method by title
 - [x] Category list grouping by TV series
 - [x] add filter method all, unwatched, watched
+- [x] Menu add episode to mylist by episode id
+- [x] Menu clear category item cache
 
 ## Screenshots
 <img src="https://github.com/toskaw/plugin.video.tver/blob/master/screenshots/sort.png?raw=true" alt="sort by title" width="400"/> <img src="https://github.com/toskaw/plugin.video.tver/blob/master/screenshots/grouping.png?raw=true" alt="grouping" width="400"/>
 <img src="https://github.com/toskaw/plugin.video.tver/blob/master/screenshots/filter.png?raw=true" alt="filter" width="400"/>
+<img src="https://github.com/toskaw/plugin.video.tver/blob/master/screenshots/menu_cache.png?raw=true" alt="menu" width="400"/>
+<img src="https://github.com/toskaw/plugin.video.tver/blob/master/screenshots/mylist.png?raw=true" alt="menu-mylist" width="400"/>
+<img src="https://github.com/toskaw/plugin.video.tver/blob/master/screenshots/input_id.png?raw=true" alt="menu-mylist-input" width="400"/>
 
 
 # plugin.video.tver

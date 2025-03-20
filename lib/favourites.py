@@ -36,10 +36,11 @@ class Favourites:
         if selected_index >= len(series):
             dialog = xbmcgui.Dialog()
             id = dialog.input('Enter episode id', type=xbmcgui.INPUT_ALPHANUM)
-            infos = fetch_episode(id)
-            series = infos['result']['series']
-            category = infos['result']['season']['content']['id']
-            self.insert(category, series['content']['id'], series['content']['title'])
+            if id :
+                infos = fetch_episode(id)
+                series = infos['result']['series']
+                category = infos['result']['season']['content']['id']
+                self.insert(category, series['content']['id'], series['content']['title'])
         elif selected_index >= 0:
             li = list[selected_index]
             serie = series[selected_index]
