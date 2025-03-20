@@ -3,7 +3,7 @@ import sqlite3 as sql
 from time import time
 
 from lib.tver import URL_VIDEO_PICTURE, URL_VIDEO_WEBSITE
-from lib import Cache, Watcher, Favourites, strip_or_none, get_url, database
+from lib import Cache, Watcher, Favourites, strip_or_none, get_url, database, log
 
 from urllib.parse import parse_qsl
 
@@ -19,8 +19,9 @@ class MyList:
         series = [fav[0] for fav in favourites]
 
         for category in categories:
-            cached_episodes = Cache().get(category)
-
+            cached_episodes = Cache().get_or_download(category)
+            if cached_episodes == None:
+                continue
             for episode in cached_episodes['result']['contents']:
                 series_id = episode['content']['seriesID']
                 if series_id in series:
