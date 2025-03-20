@@ -198,6 +198,8 @@ def router(paramstring):
             refresh()
         elif action == 'thumbnails':
             clear_thumbnails()
+        elif action == 'cache':
+            Cache().delete_cache()
         elif action == 'favourites':
             Favourites().list()
         else:

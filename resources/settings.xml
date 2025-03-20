@@ -1,9 +1,10 @@
 <settings>
     <category label="30000">
-        <setting label="30002" id="favourites" type="action" option="close" action="RunPlugin(plugin://$ID/?action=favourites)"/>
+      <setting label="30002" id="favourites" type="action" option="close" action="RunPlugin(plugin://$ID/?action=favourites)"/>
     </category>
 
     <category label="30050">
         <setting label="30051" id="thumbnails" type="action" option="close" action="RunPlugin(plugin://$ID/?action=thumbnails)"/>
+        <setting label="30050" id="cache" type="action" option="close" action="RunPlugin(plugin://$ID/?action=cache)"/>
     </category>
 </settings>

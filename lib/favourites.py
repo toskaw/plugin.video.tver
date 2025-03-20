@@ -1,7 +1,7 @@
 import sqlite3 as sql
 import xbmcgui
 
-from lib.tver import URL_VIDEO_PICTURE
+from lib.tver import URL_VIDEO_PICTURE, fetch_episodes, fetch_episode
 from lib import database, localize
 
 class Favourites:
@@ -30,9 +30,17 @@ class Favourites:
             li = xbmcgui.ListItem(serie[2])
             list.append(li)
 
+        list.append(xbmcgui.ListItem(localize(30021)))
         dialog = xbmcgui.Dialog()
         selected_index = dialog.select(localize(30002), list)
-        if selected_index >= 0:
+        if selected_index >= len(series):
+            dialog = xbmcgui.Dialog()
+            id = dialog.input('Enter episode id', type=xbmcgui.INPUT_ALPHANUM)
+            infos = fetch_episode(id)
+            series = infos['result']['series']
+            category = infos['result']['season']['content']['id']
+            self.insert(category, series['content']['id'], series['content']['title'])
+        elif selected_index >= 0:
             li = list[selected_index]
             serie = series[selected_index]
 
@@ -46,4 +54,8 @@ class Favourites:
             li.setProperty('IsPlayable', 'false')
 
             dialog = xbmcgui.Dialog()
-            dialog.info(li)
+            select = dialog.select('menu', ['Info', localize(30020)])
+            if select == 1:
+                self.delete(serie[0])
+            else:
+                dialog.info(li)

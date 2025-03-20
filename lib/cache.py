@@ -43,6 +43,10 @@ class Cache:
         with sql.connect(database()) as conn:
             conn.execute(f'DELETE FROM categories WHERE expires <= ?', (round(time()),),)
 
+    def delete_cache(self):
+        with sql.connect(database()) as conn:
+            conn.execute(f'DELETE FROM categories')
+        
     def get_or_download(self, category):
         json_episodes = self.get(category)
         if not json_episodes:
