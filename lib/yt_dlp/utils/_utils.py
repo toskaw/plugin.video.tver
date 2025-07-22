@@ -54,7 +54,7 @@ from ..compat import (
 from ..dependencies import xattr
 from ..globals import IN_CLI
 
-__name__ = __name__.rsplit('.', 1)[0]  # noqa: A001: Pretend to be the parent module
+__name__ = __name__.rsplit('.', 1)[0]  # noqa: A001 # Pretend to be the parent module
 
 
 class NO_DEFAULT:
@@ -1285,7 +1285,7 @@ def unified_timestamp(date_str, day_first=True):
 
     timetuple = email.utils.parsedate_tz(date_str)
     if timetuple:
-        return calendar.timegm(timetuple) + pm_delta * 3600 - timezone.total_seconds()
+        return calendar.timegm(timetuple) + pm_delta * 3600 - int(timezone.total_seconds())
 
 
 @partial_application
@@ -2044,7 +2044,7 @@ def url_or_none(url):
     if not url or not isinstance(url, str):
         return None
     url = url.strip()
-    return url if re.match(r'(?:(?:https?|rt(?:m(?:pt?[es]?|fp)|sp[su]?)|mms|ftps?):)?//', url) else None
+    return url if re.match(r'(?:(?:https?|rt(?:m(?:pt?[es]?|fp)|sp[su]?)|mms|ftps?|wss?):)?//', url) else None
 
 
 def strftime_or_none(timestamp, date_format='%Y%m%d', default=None):
@@ -2767,7 +2767,8 @@ def js_to_json(code, vars={}, *, strict=False):
     def template_substitute(match):
         evaluated = js_to_json(match.group(1), vars, strict=strict)
         if evaluated[0] == '"':
-            return json.loads(evaluated)
+            with contextlib.suppress(json.JSONDecodeError):
+                return json.loads(evaluated)
         return evaluated
 
     def fix_kv(m):
@@ -2960,6 +2961,7 @@ def mimetype2ext(mt, default=NO_DEFAULT):
         'audio/x-matroska': 'mka',
         'audio/x-mpegurl': 'm3u',
         'aacp': 'aac',
+        'flac': 'flac',
         'midi': 'mid',
         'ogg': 'ogg',
         'wav': 'wav',
@@ -3104,21 +3106,15 @@ def get_compatible_ext(*, vcodecs, acodecs, vexts, aexts, preferences=None):
 def urlhandle_detect_ext(url_handle, default=NO_DEFAULT):
     getheader = url_handle.headers.get
 
-    cd = getheader('Content-Disposition')
-    if cd:
-        m = re.match(r'attachment;\s*filename="(?P<filename>[^"]+)"', cd)
-        if m:
-            e = determine_ext(m.group('filename'), default_ext=None)
-            if e:
-                return e
+    if cd := getheader('Content-Disposition'):
+        if m := re.match(r'attachment;\s*filename="(?P<filename>[^"]+)"', cd):
+            if ext := determine_ext(m.group('filename'), default_ext=None):
+                return ext
 
-    meta_ext = getheader('x-amz-meta-name')
-    if meta_ext:
-        e = meta_ext.rpartition('.')[2]
-        if e:
-            return e
-
-    return mimetype2ext(getheader('Content-Type'), default=default)
+    return (
+        determine_ext(getheader('x-amz-meta-name'), default_ext=None)
+        or getheader('x-amz-meta-file-type')
+        or mimetype2ext(getheader('Content-Type'), default=default))
 
 
 def encode_data_uri(data, mime_type):
@@ -3247,7 +3243,7 @@ def _match_one(filter_part, dct, incomplete):
             op = lambda attr, value: not unnegated_op(attr, value)
         else:
             op = unnegated_op
-        comparison_value = m['quotedstrval'] or m['strval'] or m['intval']
+        comparison_value = m['quotedstrval'] or m['strval']
         if m['quote']:
             comparison_value = comparison_value.replace(r'\{}'.format(m['quote']), m['quote'])
         actual_value = dct.get(m['key'])
