@@ -43,6 +43,29 @@ class TVerIE(StreaksBaseIE):
             '_old_archive_ids': ['brightcovenew ref:baeebeac-a2a6-4dbf-9eb3-c40d59b40068'],
         },
     }, {
+        # via Brightcove backend (deprecated)
+        'url': 'https://tver.jp/episodes/epc1hdugbk',
+        'info_dict': {
+            'id': 'ref:baeebeac-a2a6-4dbf-9eb3-c40d59b40068',
+            'ext': 'mp4',
+            'title': '神回だけ見せます！ #2 壮烈！車大騎馬戦（木曜スペシャル）',
+            'alt_title': '神回だけ見せます！ #2 壮烈！車大騎馬戦（木曜スペシャル） 日テレ',
+            'description': 'md5:2726f742d5e3886edeaf72fb6d740fef',
+            'uploader_id': '4394098882001',
+            'channel': '日テレ',
+            'duration': 1158.101,
+            'thumbnail': 'https://statics.tver.jp/images/content/thumbnail/episode/xlarge/epc1hdugbk.jpg?v=16',
+            'tags': [],
+            'series': '神回だけ見せます！',
+            'episode': '#2 壮烈！車大騎馬戦（木曜スペシャル）',
+            'episode_number': 2,
+            'timestamp': 1651388531,
+            'upload_date': '20220501',
+            'release_timestamp': 1651453200,
+            'release_date': '20220502',
+        },
+        'params': {'extractor_args': {'tver': {'backend': ['brightcove']}}},
+    }, {
         'url': 'https://tver.jp/corner/f0103888',
         'only_matching': True,
     }, {
@@ -67,11 +90,11 @@ class TVerIE(StreaksBaseIE):
         'only_matching': True,
     }]
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/%s/default_default/index.html?videoId=%s'
-
-    STREAKS_URL_TEMPLATE = 'https://playback.api.streaks.jp/v1/projects/%s/medias/%s?ati=%s'
-
-    _HEADERS = {'x-tver-platform-type': 'web', 'origin': 'https://tver.jp/', 'referer': 'https://tver.jp/'}
-
+    _HEADERS = {
+        'x-tver-platform-type': 'web',
+        'Origin': 'https://tver.jp',
+        'Referer': 'https://tver.jp/',
+    }
     _PLATFORM_QUERY = {}
 
     def _real_initialize(self):
@@ -130,7 +153,6 @@ class TVerIE(StreaksBaseIE):
             episode_info, ('result', 'episode', 'content')) or {}
 
         version = traverse_obj(episode_content, ('version', {str_or_none}), default='5')
-
         video_info = self._download_json(
             f'https://statics.tver.jp/content/episode/{video_id}.json', video_id, 'Downloading video info',
             query={'v': version}, headers={'Referer': 'https://tver.jp/'})
@@ -160,7 +182,7 @@ class TVerIE(StreaksBaseIE):
             ]
         ]
 
-        data = {
+        metadata = {
             'title': title,
             'series': series,
             'episode': episode,
@@ -168,86 +190,45 @@ class TVerIE(StreaksBaseIE):
             'alt_title': join_nonempty(title, provider, onair_label, delim=' '),
             'channel': provider,
             'thumbnails': thumbnails,
+            **traverse_obj(video_info, {
+                'description': ('description', {str}),
+                'release_timestamp': ('viewStatus', 'startAt', {int_or_none}),
+                'episode_number': ('no', {int_or_none}),
+            }),
         }
 
-        backend = self._configuration_arg('backend', ['streaks'])[0]
+        brightcove_id = traverse_obj(video_info, ('video', ('videoRefID', 'videoID'), {str}, any))
+        if brightcove_id and not brightcove_id.isdecimal():
+            brightcove_id = f'ref:{brightcove_id}'
 
-        if backend not in ('brightcove', 'streaks'):
-            raise ExtractorError(f'Invalid backend value: {backend}', expected=True)
+        streaks_id = traverse_obj(video_info, ('streaks', 'videoRefID', {str}))
+        if streaks_id and not streaks_id.startswith('ref:'):
+            streaks_id = f'ref:{streaks_id}'
 
-        if backend == 'brightcove':
-            return self._brightcove_backend(data, video_info)
+        # Deprecated Brightcove extraction reachable w/extractor-arg or fallback; errors are expected
+        if backend == 'brightcove' or not streaks_id:
+            if backend != 'brightcove':
+                self.report_warning(
+                    'No STREAKS ID found; falling back to Brightcove extraction', video_id=video_id)
+            if not brightcove_id:
+                raise ExtractorError('Unable to extract brightcove reference ID', expected=True)
+            account_id = traverse_obj(video_info, (
+                'video', 'accountID', {str}, {require('brightcove account ID', expected=True)}))
+            return {
+                **metadata,
+                '_type': 'url_transparent',
+                'url': smuggle_url(
+                    self.BRIGHTCOVE_URL_TEMPLATE % (account_id, brightcove_id),
+                    {'geo_countries': ['JP']}),
+                'ie_key': 'BrightcoveNew',
+            }
 
-        return self._streaks_backend(data, video_info, video_id)
-
-    def _brightcove_backend(self, result, video_info):
-        self.write_debug('Using Brightcove backend')
-
-        p_id = video_info['video']['accountID']
-        r_id = traverse_obj(video_info, ('video', ('videoRefID', 'videoID')), get_all=False)
-
-        if not r_id:
-            raise ExtractorError('Failed to extract reference ID for Brightcove')
-
-        if not r_id.isdigit():
-            r_id = f'ref:{r_id}'
-
-        result.update({
-            '_type': 'url_transparent',
-            'url': smuggle_url(
-                self.BRIGHTCOVE_URL_TEMPLATE % (p_id, r_id), {'geo_countries': ['JP']}),
-            'ie_key': 'BrightcoveNew',
-        })
-
-        return result
-
-    def _streaks_backend(self, result, video_info, video_id):
-        self.write_debug('Using streaks.jp backend')
-
-        ref_id = traverse_obj(video_info, ('streaks', 'videoRefID'), get_all=False)
-        project_id = traverse_obj(video_info, ('streaks', 'projectID'), get_all=False)
-
-        if not ref_id:
-            raise ExtractorError('Failed to extract reference ID for streaks.jp stream info')
-
-        if not project_id:
-            raise ExtractorError('Failed to extract project ID for streaks.jp stream info')
-
-        #if not ref_id.isdigit() and not ref_id.startswith('ref:'):
-        ref_id = f'ref:{ref_id}'
-
-        url = self.STREAKS_URL_TEMPLATE % (project_id, ref_id, 'aa')
-        self.write_debug(f'Streaks URL: {url}')
-
-        json_info = self._download_json(
-            url,
-            video_id,
-            'Downloading streaks.jp streams video info',
-            headers={
-                'origin': 'https://tver.jp/',
-                'referer': 'https://tver.jp/',
-                **self.geo_verification_headers(),
-            },
-        )
-
-        res = traverse_obj(json_info, ('sources', 0, 'resolution'), default=None)
-        m3u8_url = traverse_obj(json_info, ('sources', 0, 'src'), default=False)
-        if not m3u8_url:
-            raise ExtractorError('Failed to extract m3u8 URL')
-
-        formats, subtitles = self._extract_m3u8_formats_and_subtitles(
-            m3u8_url,
-            video_id,
-            'mp4',
-            m3u8_id='hls',
-            quality=res,
-            headers={'origin': 'https://tver.jp/', 'referer': 'https://tver.jp/'},
-            note='Downloading streaks.jp m3u8 information',
-        )
-        result.update({
+        return {
+            **self._extract_from_streaks_api(video_info['streaks']['projectID'], streaks_id, {
+                'Origin': 'https://tver.jp',
+                'Referer': 'https://tver.jp/',
+            }),
+            **metadata,
             'id': video_id,
-            'formats': formats,
-            'subtitles': subtitles,
-        })
-
-        return result
+            '_old_archive_ids': [make_archive_id('BrightcoveNew', brightcove_id)] if brightcove_id else None,
+        }
