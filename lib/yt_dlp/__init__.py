@@ -159,6 +159,12 @@ def set_compat_opts(opts):
     elif 'prefer-vp9-sort' in opts.compat_opts:
         opts.format_sort.extend(FormatSorter._prefer_vp9_sort)
 
+    if 'mtime-by-default' in opts.compat_opts:
+        if opts.updatetime is None:
+            opts.updatetime = True
+        else:
+            _unused_compat_opt('mtime-by-default')
+
     _video_multistreams_set = set_default_compat('multistreams', 'allow_multiple_video_streams', False, remove_compat=False)
     _audio_multistreams_set = set_default_compat('multistreams', 'allow_multiple_audio_streams', False, remove_compat=False)
     if _video_multistreams_set is False and _audio_multistreams_set is False:
@@ -1021,8 +1027,9 @@ def _real_main(argv=None):
                 # List of simplified targets we know are supported,
                 # to help users know what dependencies may be required.
                 (ImpersonateTarget('chrome'), 'curl_cffi'),
-                (ImpersonateTarget('edge'), 'curl_cffi'),
                 (ImpersonateTarget('safari'), 'curl_cffi'),
+                (ImpersonateTarget('firefox'), 'curl_cffi>=0.10'),
+                (ImpersonateTarget('edge'), 'curl_cffi'),
             ]
 
             available_targets = ydl._get_available_impersonate_targets()
@@ -1038,12 +1045,12 @@ def _real_main(argv=None):
 
             for known_target, known_handler in known_targets:
                 if not any(
-                    known_target in target and handler == known_handler
+                    known_target in target and known_handler.startswith(handler)
                     for target, handler in available_targets
                 ):
-                    rows.append([
+                    rows.insert(0, [
                         ydl._format_out(text, ydl.Styles.SUPPRESS)
-                        for text in make_row(known_target, f'{known_handler} (not available)')
+                        for text in make_row(known_target, f'{known_handler} (unavailable)')
                     ])
 
             ydl.to_screen('[info] Available impersonate targets')
