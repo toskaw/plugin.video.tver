@@ -7,6 +7,7 @@
 - [x] すべて、未視聴、視聴済みで絞り込み
 - [x] マイリストにエピソードIDで追加
 - [x] カテゴリーキャッシュのクリア機能追加
+- [x] ダウンロード用のシェルスクリプト作成機能追加
 
 ## Changes
 - [x] add sort method by title
@@ -14,6 +15,7 @@
 - [x] add filter method all, unwatched, watched
 - [x] Menu add episode to mylist by episode id
 - [x] Menu clear category item cache
+- [x] create download script
 
 ## Screenshots
 <img src="https://github.com/toskaw/plugin.video.tver/blob/master/screenshots/sort.png?raw=true" alt="sort by title" width="400"/> <img src="https://github.com/toskaw/plugin.video.tver/blob/master/screenshots/grouping.png?raw=true" alt="grouping" width="400"/>

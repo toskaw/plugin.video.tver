@@ -1,7 +1,9 @@
 import sys
 from urllib.parse import parse_qsl
 import xbmcgui
+import xbmcvfs
 import xbmcplugin
+import xbmcaddon
 
 from lib import tver
 from lib import Cache, Favourites, Watcher, MyList
@@ -15,7 +17,7 @@ def list_videos(category):
     xbmcplugin.setContent(_HANDLE, 'movies')
 
     videos = []
-    context = None
+    context = []
     series_list = []
     flatdir = False
     
@@ -24,7 +26,7 @@ def list_videos(category):
         mylist.build()
         videos = mylist.get()
         flatdir = True
-        context = (localize(30020),'delist')
+        context.append((localize(30020),'delist'))
 
     elif category == 'watching':
         videos = Watcher().get_watching_episodes()
@@ -32,7 +34,8 @@ def list_videos(category):
 
     else:
         videos = Cache().get_episodes(category)
-        context = (localize(30021),'mylist')
+        context.append((localize(30021),'mylist'))
+        context.append((localize(30022),'save_series'))
 
     for video in videos:
         if not flatdir:
@@ -49,9 +52,10 @@ def list_videos(category):
         list_item.setProperty('IsPlayable', 'true')
         list_item.setArt({'thumb': video['thumb'], 'icon': video['thumb'], 'fanart': video['thumb']})
 
-        if context:
-            context_menu_item = (context[0], 'RunPlugin({})'.format(get_url(action=context[1], series=video['series'], category=video['genre'], series_title=video['series_title'])))
-            list_item.addContextMenuItems([context_menu_item])
+        if len(context) != 0:
+            for item in context:
+                context_menu_item = (item[0], 'RunPlugin({})'.format(get_url(action=item[1], series=video['series'], category=video['genre'], series_title=video['series_title'])))
+                list_item.addContextMenuItems([context_menu_item])
 
         if flatdir :
             url = get_url(action='play', video=video['video'])
@@ -181,6 +185,23 @@ def play_video(video):
 
     xbmcplugin.setResolvedUrl(_HANDLE, True, listitem=list_item)
 
+def save_series(category, series, title):
+    path = xbmcaddon.Addon().getSetting('savefolder') + title
+    #https://tver.jp/series/srlndqnmb5
+    scr = f'yt-dlp -f bv+ba https://tver.jp/series/{series}'
+    try:
+        if not xbmcvfs.exists(path):
+            #create folder
+            xbmcvfs.mkdir(path)
+        path = path + '/dl.sh'
+        #create dl.sh
+        dl_sh = xbmcvfs.File(path, 'w')
+        dl_sh.write(scr)
+        dl_sh.close()
+    except Exception as e:  
+        xbmc.log(f"エラーが発生しました: {e}", xbmc.LOGERROR)
+    return
+
 def router(paramstring):
     params = dict(parse_qsl(paramstring))
     if params:
@@ -193,6 +214,8 @@ def router(paramstring):
             MyList().add(params['category'], params['series'], params['series_title'])
         elif action == 'list_series':
             list_series(params['category'], params['series'], params['series_title'])
+        elif action == 'save_series':
+            save_series(params['category'], params['series'], params['series_title'])
         elif action == 'delist':
             MyList().remove(params['series'])
             refresh()
@@ -200,6 +223,9 @@ def router(paramstring):
             clear_thumbnails()
         elif action == 'cache':
             Cache().delete_cache()
+            func = "Container.Refresh"
+            xbmc.executebuiltin(func)
+ 
         elif action == 'favourites':
             Favourites().list()
         else:

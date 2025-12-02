@@ -60,13 +60,27 @@ msgctxt "#30021"
 msgid "Add to 'My list'"
 msgstr ""
 
+msgctxt "#30022"
+msgid "Add to save list"
+msgstr ""
+
+
 # settings
+msgctxt "#30041"
+msgid "Save folder"
+msgstr ""
+
+
 msgctxt "#30050"
 msgid "Cache"
 msgstr ""
 
 msgctxt "#30051"
 msgid "Clear thumbnail cache"
+msgstr ""
+
+msgctxt "#30052"
+msgid "Clear cache"
 msgstr ""
 
 msgctxt "#30060"

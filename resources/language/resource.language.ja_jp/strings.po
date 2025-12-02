@@ -60,7 +60,15 @@ msgctxt "#30021"
 msgid "Add to 'My list'"
 msgstr "マイリストに追加"
 
+msgctxt "#30022"
+msgid "Add to save list"
+msgstr ""
+
 # settings
+msgctxt "#30041"
+msgid "Save folder"
+msgstr "保存フォルダ"
+
 msgctxt "#30050"
 msgid "Cache"
 msgstr "キャッシュ"
@@ -68,6 +76,10 @@ msgstr "キャッシュ"
 msgctxt "#30051"
 msgid "Clear thumbnail cache"
 msgstr "サムネイルキャッシュをクリア"
+
+msgctxt "#30052"
+msgid "Clear cache"
+msgstr "キャッシュをクリア"
 
 msgctxt "#30060"
 msgid "Proxy"
