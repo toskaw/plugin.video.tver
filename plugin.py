@@ -27,7 +27,8 @@ def list_videos(category):
         videos = mylist.get()
         flatdir = True
         context.append((localize(30020),'delist'))
-
+        context.append((localize(30022),'save_series'))
+        
     elif category == 'watching':
         videos = Watcher().get_watching_episodes()
         flatdir = True
@@ -53,9 +54,10 @@ def list_videos(category):
         list_item.setArt({'thumb': video['thumb'], 'icon': video['thumb'], 'fanart': video['thumb']})
 
         if len(context) != 0:
+            context_menu_item = []
             for item in context:
-                context_menu_item = (item[0], 'RunPlugin({})'.format(get_url(action=item[1], series=video['series'], category=video['genre'], series_title=video['series_title'])))
-                list_item.addContextMenuItems([context_menu_item])
+                context_menu_item.append((item[0], 'RunPlugin({})'.format(get_url(action=item[1], series=video['series'], category=video['genre'], series_title=video['series_title']))))
+                list_item.addContextMenuItems(context_menu_item)
 
         if flatdir :
             url = get_url(action='play', video=video['video'])
@@ -79,20 +81,22 @@ def list_series(category, series, title):
     xbmcplugin.setContent(_HANDLE, 'movies')
 
     videos = []
-    context = None
+    context = []
 
     if category == 'mylist':
         mylist = MyList()
         mylist.build()
         videos = mylist.get()
-        context = (localize(30020),'delist')
-
+        context.append((localize(30020),'delist'))
+        context.append((localize(30022),'save_series'))
+        
     elif category == 'watching':
         videos = Watcher().get_watching_episodes()
 
     else:
         videos = Cache().get_episodes(category)
-        context = (localize(30021),'mylist')
+        context.append((localize(30021),'mylist'))
+        context.append((localize(30022),'save_series'))
 
     for video in videos:
         if series == video['series']:
@@ -109,9 +113,11 @@ def list_series(category, series, title):
             list_item.setArt({'thumb': video['thumb'], 'icon': video['thumb'], 'fanart': video['thumb']})
             list_item.setProperty('IsPlayable', 'true')
 
-            if context:
-                context_menu_item = (context[0], 'RunPlugin({})'.format(get_url(action=context[1], series=video['series'], category=video['genre'], series_title=video['series_title'])))
-                list_item.addContextMenuItems([context_menu_item])
+            if len(context) != 0:
+                context_menu_item = []
+                for item in context:
+                    context_menu_item.append((item[0], 'RunPlugin({})'.format(get_url(action=item[1], series=video['series'], category=video['genre'], series_title=video['series_title']))))
+                    list_item.addContextMenuItems(context_menu_item)
 
             url = get_url(action='play', video=video['video'])
             is_folder = False
