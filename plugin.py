@@ -4,6 +4,7 @@ import xbmcgui
 import xbmcvfs
 import xbmcplugin
 import xbmcaddon
+import re
 
 from lib import tver
 from lib import Cache, Favourites, Watcher, MyList
@@ -192,6 +193,7 @@ def play_video(video):
     xbmcplugin.setResolvedUrl(_HANDLE, True, listitem=list_item)
 
 def save_series(category, series, title):
+    title = re.sub(r'[\\/:*?"<>|]+','', title)
     path = xbmcaddon.Addon().getSetting('savefolder') + title
     #https://tver.jp/series/srlndqnmb5
     scr = f'yt-dlp -f bv+ba https://tver.jp/series/{series}'
