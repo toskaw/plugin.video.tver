@@ -1,9 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<addon id="plugin.video.tver" name="TVer" version="0.4.2" provider-name="toskaw">
+<addon id="plugin.video.tver" name="TVer" version="1.0.0.0" provider-name="toskaw">
+  
   <requires>
     <import addon="xbmc.python" version="3.0.1" />
     <import addon="script.module.inputstreamhelper" version="0.6.0" />
     <import addon="script.module.requests" version="2.27.1" />
+    <import addon="script.module.yt-dlp" version="2026.08.19-1" />
   </requires>
 
   <extension point="xbmc.python.pluginsource" library="plugin.py">

@@ -8,6 +8,7 @@
 - [x] マイリストにエピソードIDで追加
 - [x] カテゴリーキャッシュのクリア機能追加
 - [x] ダウンロード用のシェルスクリプト作成機能追加
+- [x] yt-dlpを分離
 
 ## Changes
 - [x] add sort method by title

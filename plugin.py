@@ -138,7 +138,6 @@ def get_categories():
     mylist_pic = MyList().get_random_pic()
     if mylist_pic:
         cats.insert(0,("mylist", localize(30002), mylist_pic))
-
     return cats
 
 def list_categories():

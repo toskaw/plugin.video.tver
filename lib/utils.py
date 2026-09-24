@@ -65,8 +65,8 @@ def patch_strptime():
     datetime.datetime = proxydt
 
 def extract_info(url):
-    from lib.yt_dlp import YoutubeDL
-    from lib.yt_dlp.extractor.tver import TVerIE
+    from yt_dlp import YoutubeDL
+    from yt_dlp.extractor.tver import TVerIE
 
     patch_strptime()
 
