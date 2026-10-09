@@ -195,7 +195,7 @@ def save_series(category, series, title):
     title = re.sub(r'[\\/:*?"<>|]+','', title)
     path = xbmcaddon.Addon().getSetting('savefolder') + title
     #https://tver.jp/series/srlndqnmb5
-    scr = f'yt-dlp -f bv+ba https://tver.jp/series/{series}'
+    scr = f'yt-dlp -f bv+ba --download-archive archive.txt https://tver.jp/series/{series}'
     try:
         if not xbmcvfs.exists(path):
             #create folder
